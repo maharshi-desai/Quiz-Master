@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Master | Trivia Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <h1>Quiz Master</h1>
+        <button id="theme-toggle">Toggle</button>
+    </nav>
+
+    <main class="container">
+        <div id="loader" class="loader-container">
+            <div class="spinner"></div>
+            <p>Fetching Trivia...</p>
+        </div>
+
+        <div id="quiz-container" class="hidden">
+            <div id="question-card" class="card">
+                <div class="card-header">
+                    <span id="category-badge" class="badge">Category</span>
+                    <span id="difficulty-badge" class="badge">Easy</span>
+                </div>
+                <h2 id="question-text">Loading question...</h2>
+                <div id="options-container" class="options-grid">
+                    </div>
+                <div class="card-footer">
+                    <button id="next-btn" class="btn-primary">Next Question</button>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="error-message" class="hidden">
+            <p>Oops! Something went wrong while fetching the quiz.</p>
+            <button onclick="location.reload()" class="btn-primary">Try Again</button>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
