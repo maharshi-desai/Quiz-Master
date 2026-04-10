@@ -1,4 +1,4 @@
-const categories = [
+const categoriesData = [
     {id:9,name:"General Knowledge"},
     {id:10,name:"Entertainment: Books"},
     {id:11,name:"Entertainment: Film"},
@@ -25,269 +25,236 @@ const categories = [
     {id:32,name:"Entertainment: Cartoon & Animations"}
 ];
 
-// DOM Elements
-const loader = document.getElementById('loader');
-const quizContainer = document.getElementById('quiz-container');
-const emptyState = document.getElementById('empty-state');
-const questionText = document.getElementById('question-text');
-const optionsContainer = document.getElementById('options-container');
-const categoryBadge = document.getElementById('category-badge');
-const difficultyBadge = document.getElementById('difficulty-badge');
-const questionProgress = document.getElementById('question-progress');
-const scoreDisplay = document.getElementById('score-display');
-const nextBtn = document.getElementById('next-btn');
-const errorMessage = document.getElementById('error-message');
+const state = {
+    allQuestions: [],
+    filteredQuestions: [],
+    currentIndex: 0,
+    score: 0,
+    hasAnswered: false
+};
 
-const themeToggle = document.getElementById('theme-toggle');
-const categorySelect = document.getElementById('category-select');
-const searchInput = document.getElementById('search-input');
-const difficultyFilter = document.getElementById('difficulty-filter');
-const sortSelect = document.getElementById('sort-select');
+const UI = {
+    themeT: document.getElementById('theme-toggle'),
+    catSel: document.getElementById('category-select'),
+    diffSel: document.getElementById('difficulty-select'),
+    sortSel: document.getElementById('sort-select'),
+    searchInput: document.getElementById('search-input'),
+    vLoad: document.getElementById('loading-view'),
+    vError: document.getElementById('error-view'),
+    vQuiz: document.getElementById('quiz-view'),
+    vEmpty: document.getElementById('empty-view'),
+    errMsg: document.getElementById('error-message'),
+    btnRetry: document.getElementById('retry-btn'),
+    btnNext: document.getElementById('next-btn'),
+    qCategory: document.getElementById('question-category'),
+    qDifficulty: document.getElementById('question-difficulty'),
+    qText: document.getElementById('question-text'),
+    scoreDisp: document.getElementById('score-display'),
+    curNum: document.getElementById('current-question-num'),
+    totNum: document.getElementById('total-questions-num'),
+    optList: document.getElementById('options-container'),
+    progressBar: document.getElementById('progress-bar')
+};
 
-// State
-let allQuestions = [];
-let currentDisplayQuestions = [];
-let currentIndex = 0;
-let score = 0;
-let answerSelected = false;
+const decodeText = (str) => {
+    const txt = document.createElement("textarea");
+    txt.innerHTML = str;
+    return txt.value;
+};
 
-// Initialize
-function init() {
-    // Populate categories without for loop (using map)
-    categories.map(cat => {
-        const option = document.createElement('option');
-        option.value = cat.id;
-        option.textContent = cat.name;
-        categorySelect.appendChild(option);
+const randomizeOrder = (arr) => arr
+    .map(val => ({ val, sortVal: Math.random() }))
+    .sort((a, b) => a.sortVal - b.sortVal)
+    .map(obj => obj.val);
+
+const transformQuestion = (apiData) => ({
+    category: decodeText(apiData.category),
+    difficulty: apiData.difficulty,
+    question: decodeText(apiData.question),
+    correctAnswer: decodeText(apiData.correct_answer),
+    answers: randomizeOrder([
+        apiData.correct_answer, 
+        ...apiData.incorrect_answers
+    ]).map(decodeText)
+});
+
+const activateView = (viewName) => {
+    [UI.vLoad, UI.vError, UI.vQuiz, UI.vEmpty].map(el => {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
     });
 
-    // Theme logic setup
-    if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
+    if (viewName === 'loading') {
+        UI.vLoad.classList.remove('hidden');
+        UI.vLoad.classList.add('flex');
+    } else if (viewName === 'error') {
+        UI.vError.classList.remove('hidden');
+        UI.vError.classList.add('flex');
+    } else if (viewName === 'quiz') {
+        UI.vQuiz.classList.remove('hidden');
+        UI.vQuiz.classList.add('flex');
+    } else if (viewName === 'empty') {
+        UI.vEmpty.classList.remove('hidden');
+        UI.vEmpty.classList.add('flex');
     }
-    
-    // Event listeners
-    themeToggle.onclick = toggleTheme;
-    categorySelect.onchange = fetchQuiz;
-    
-    // Filters and sort listeners
-    searchInput.oninput = applyFilters;
-    difficultyFilter.onchange = applyFilters;
-    sortSelect.onchange = applyFilters;
+};
 
-    nextBtn.onclick = handleNext;
+const hydrateCategories = () => {
+    categoriesData.map(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name;
+        UI.catSel.appendChild(opt);
+        return cat; 
+    });
+};
 
-    fetchQuiz();
-}
+const evaluatePipeline = () => {
+    const term = UI.searchInput.value.toLowerCase().trim();
+    const diffLevel = UI.diffSel.value;
+    const sortMethod = UI.sortSel.value;
 
-function toggleTheme() {
-    document.documentElement.classList.toggle('dark');
-    if (document.documentElement.classList.contains('dark')) {
-        localStorage.setItem('theme', 'dark');
-    } else {
-        localStorage.setItem('theme', 'light');
-    }
-}
-
-function decodeHTML(text) {
-    const textArea = document.createElement("textarea");
-    textArea.innerHTML = text;
-    return textArea.value;
-}
-
-async function fetchQuiz() {
-    try {
-        loader.classList.remove('hidden');
-        quizContainer.classList.add('hidden');
-        emptyState.classList.add('hidden');
-        errorMessage.classList.add('hidden');
-
-        const catId = categorySelect.value;
-        let url = "https://opentdb.com/api.php?amount=10&type=multiple";
-        if (catId !== 'any') {
-            url += `&category=${catId}`;
-        }
-
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("HTTP connection failed");
+    state.filteredQuestions = state.allQuestions.filter(item => {
+        const searchPass = term === '' || 
+            item.question.toLowerCase().includes(term) ||
+            item.answers.find(ans => ans.toLowerCase().includes(term)) !== undefined;
         
-        const data = await response.json();
+        const diffPass = diffLevel === 'any' || item.difficulty === diffLevel;
         
-        if (data.response_code !== 0 || !data.results || data.results.length === 0) {
-            throw new Error(data.response_code === 5 ? "Too many requests. Please wait a few seconds." : "No trivia logic returned.");
-        }
-        
-        allQuestions = data.results; 
-        
-        // Map over questions to pre-compute decoded question text for easier searching
-        // No for loops used
-        allQuestions = allQuestions.map((q, index) => {
-            return {
-                ...q,
-                id: index,
-                decodedQuestion: decodeHTML(q.question).toLowerCase()
-            };
-        });
-
-        score = 0;
-        updateScoreDisplay();
-        
-        applyFilters();
-
-    } catch (error) {
-        console.error("Error fetching data:", error);
-        loader.classList.add('hidden');
-        if (errorMessage.querySelector('p')) {
-            errorMessage.querySelector('p').textContent = error.message.includes("Too many") || error.message.includes("No trivia") ? error.message : "Oops! Something went wrong while fetching the quiz.";
-        }
-        errorMessage.classList.remove('hidden');
-    }
-}
-
-function applyFilters() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const diffNode = difficultyFilter.value;
-    const sortVal = sortSelect.value;
-
-    // Filter using .filter() based on search term and difficulty
-    let filtered = allQuestions.filter(q => {
-        const matchesSearch = q.decodedQuestion.includes(searchTerm);
-        const matchesDiff = diffNode === 'any' || q.difficulty === diffNode;
-        return matchesSearch && matchesDiff;
+        return searchPass && diffPass;
     });
 
-    // Sort using .sort() 
-    if (sortVal !== 'default') {
-        filtered = filtered.sort((a, b) => {
-            if (sortVal === 'alpha-asc') return a.decodedQuestion.localeCompare(b.decodedQuestion);
-            if (sortVal === 'alpha-desc') return b.decodedQuestion.localeCompare(a.decodedQuestion);
-            
-            const diffMap = { 'easy': 1, 'medium': 2, 'hard': 3 };
-            if (sortVal === 'diff-asc') return diffMap[a.difficulty] - diffMap[b.difficulty];
-            if (sortVal === 'diff-desc') return diffMap[b.difficulty] - diffMap[a.difficulty];
-            return 0;
-        });
+    if (sortMethod === 'alpha') {
+        state.filteredQuestions.sort((a, b) => a.question.localeCompare(b.question));
+    } else if (sortMethod === 'difficulty') {
+        const levels = { easy: 1, medium: 2, hard: 3 };
+        state.filteredQuestions.sort((a, b) => levels[a.difficulty] - levels[b.difficulty]);
     }
 
-    currentDisplayQuestions = filtered;
-    currentIndex = 0;
+    state.currentIndex = 0;
+    renderPrompt();
+};
 
-    loader.classList.add('hidden');
-    
-    if (currentDisplayQuestions.length === 0) {
-        quizContainer.classList.add('hidden');
-        emptyState.classList.remove('hidden');
-    } else {
-        emptyState.classList.add('hidden');
-        quizContainer.classList.remove('hidden');
-        renderQuestion();
-    }
-}
-
-function renderQuestion() {
-    const currentQ = currentDisplayQuestions[currentIndex];
-    answerSelected = false;
-    nextBtn.disabled = true;
-
-    questionText.innerText = decodeHTML(currentQ.question);
-    categoryBadge.innerText = decodeHTML(currentQ.category);
-    difficultyBadge.innerText = currentQ.difficulty.charAt(0).toUpperCase() + currentQ.difficulty.slice(1);
-    questionProgress.innerText = `${currentIndex + 1}/${currentDisplayQuestions.length}`;
-
-    // Apply color to difficulty badges
-    difficultyBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold';
-    if (currentQ.difficulty === 'easy') {
-        difficultyBadge.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900/30', 'dark:text-green-300');
-    } else if (currentQ.difficulty === 'medium') {
-        difficultyBadge.classList.add('bg-yellow-100', 'text-yellow-800', 'dark:bg-yellow-900/30', 'dark:text-yellow-300');
-    } else {
-        difficultyBadge.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900/30', 'dark:text-red-300');
+const renderPrompt = () => {
+    if (state.filteredQuestions.length === 0) {
+        activateView('empty');
+        return;
     }
 
-    categoryBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-
-    const allOptions = [...currentQ.incorrect_answers, currentQ.correct_answer];
+    activateView('quiz');
+    state.hasAnswered = false;
+    UI.btnNext.classList.add('hidden');
+    UI.optList.innerHTML = '';
     
-    // Sort randomly
-    allOptions.sort(() => Math.random() - 0.5);
+    const curr = state.filteredQuestions[state.currentIndex];
 
-    optionsContainer.innerHTML = "";
-    
-    // Iterate to build option buttons using .map()
-    allOptions.map(option => {
+    UI.qCategory.textContent = curr.category;
+    UI.qDifficulty.textContent = curr.difficulty;
+    UI.scoreDisp.textContent = state.score;
+    UI.curNum.textContent = state.currentIndex + 1;
+    UI.totNum.textContent = state.filteredQuestions.length;
+    UI.qText.textContent = curr.question;
+
+    curr.answers.map(ansText => {
         const btn = document.createElement('button');
-        btn.className = `option-btn w-full text-left bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 border-2 border-transparent hover:border-apple-accent p-4 rounded-xl transition-all duration-200 text-sm md:text-base font-medium`;
-        btn.innerText = decodeHTML(option);
-        
-        btn.onclick = () => handleAnswer(btn, option, currentQ.correct_answer);
-        
-        optionsContainer.appendChild(btn);
-    });
-    
-    // Update button text logic
-    if (currentIndex === currentDisplayQuestions.length - 1) {
-        nextBtn.innerText = "Finish Quiz";
-    } else {
-        nextBtn.innerText = "Next Question";
-    }
-}
-
-function handleAnswer(selectedBtn, selectedOption, correctAnswer) {
-    if (answerSelected) return;
-    answerSelected = true;
-
-    // Use .find() and .map() on Array.from(children) to adhere to no-loop constraint
-    const allBtns = Array.from(optionsContainer.children);
-    const isCorrect = selectedOption === correctAnswer;
-    
-    if (isCorrect) {
-        score++;
-        updateScoreDisplay();
-        selectedBtn.classList.remove('bg-gray-50', 'dark:bg-gray-800/50', 'hover:border-apple-accent', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
-        selectedBtn.classList.add('bg-green-500', 'text-white', 'border-green-600', 'shadow-sm');
-    } else {
-        selectedBtn.classList.remove('bg-gray-50', 'dark:bg-gray-800/50', 'hover:border-apple-accent', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
-        selectedBtn.classList.add('bg-red-500', 'text-white', 'border-red-600', 'shadow-sm');
-        
-        // Find correct button and highlight it using .find()
-        const correctBtn = allBtns.find(b => b.innerText === decodeHTML(correctAnswer));
-        if (correctBtn) {
-            correctBtn.classList.remove('bg-gray-50', 'dark:bg-gray-800/50', 'hover:border-apple-accent');
-            correctBtn.classList.add('bg-green-500/50', 'text-white', 'border-green-600/50', 'dark:bg-green-900/50');
-        }
-    }
-
-    // Disable all buttons using .map()
-    allBtns.map(btn => {
-        btn.disabled = true;
-        btn.classList.add('cursor-not-allowed');
-        if (btn !== selectedBtn && btn.innerText !== decodeHTML(correctAnswer)) {
-            btn.classList.add('opacity-50');
-        }
+        btn.className = 'option-btn';
+        btn.textContent = ansText;
+        btn.onclick = () => registerClick(ansText, btn);
+        UI.optList.appendChild(btn);
+        return ansText;
     });
 
-    nextBtn.disabled = false;
-}
+    const progress = ((state.currentIndex + 1) / state.filteredQuestions.length) * 100;
+    if (UI.progressBar) UI.progressBar.style.width = progress + '%';
+};
 
-function handleNext() {
-    if (currentIndex < currentDisplayQuestions.length - 1) {
-        currentIndex++;
-        renderQuestion();
-    } else {
-        // Find quiz container to hide, show completion state
-        quizContainer.innerHTML = `
-            <div class="bg-apple-cardLight dark:bg-apple-cardDark rounded-3xl shadow-lg p-10 text-center border border-gray-100 dark:border-gray-800 animate-fade-in">
-                <h2 class="text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">Quiz Complete!</h2>
-                <p class="text-xl mb-8">You scored <span class="font-bold text-apple-accent">${score}</span> out of ${currentDisplayQuestions.length}.</p>
-                <button onclick="location.reload()" class="bg-apple-accent hover:bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold transition-transform transform active:scale-95 shadow-md">Play Again</button>
-            </div>
-        `;
+const registerClick = (chosenAns, elementClicked) => {
+    if (state.hasAnswered) return;
+    state.hasAnswered = true;
+
+    const curr = state.filteredQuestions[state.currentIndex];
+    const correct = chosenAns === curr.correctAnswer;
+
+    if (correct) {
+        state.score += 1;
+        UI.scoreDisp.textContent = state.score;
     }
-}
 
-function updateScoreDisplay() {
-    scoreDisplay.innerText = `Score: ${score}`;
-}
+    Array.from(UI.optList.children).map(btnElm => {
+        const textVal = btnElm.textContent;
+        btnElm.disabled = true;
 
-// Start
-init();
+        if (textVal === curr.correctAnswer) {
+            btnElm.classList.add('correct');
+        } else if (textVal === chosenAns && !correct) {
+            btnElm.classList.add('incorrect');
+        } else {
+            btnElm.style.opacity = '0.4';
+        }
+        return btnElm;
+    });
+
+    UI.btnNext.classList.remove('hidden');
+    const atEnd = state.currentIndex === state.filteredQuestions.length - 1;
+    UI.btnNext.textContent = atEnd ? "Finish & Play Again" : "Next Question";
+};
+
+const networkFetch = async () => {
+    activateView('loading');
+    state.score = 0;
+    state.currentIndex = 0;
+    
+    const catId = UI.catSel.value;
+    let targetEndpoint = 'https://opentdb.com/api.php?amount=10';
+    if (catId !== 'any') targetEndpoint += `&category=${catId}`;
+
+    try {
+        const req = await fetch(targetEndpoint);
+        if (!req.ok) throw new Error("HTTP connection failed");
+        const respData = await req.json();
+
+        if (respData.response_code !== 0 || !respData.results || respData.results.length === 0) {
+            throw new Error("No trivia questions returned for this selection.");
+        }
+
+        state.allQuestions = respData.results.map(transformQuestion);
+        
+        evaluatePipeline();
+
+    } catch (err) {
+        console.error(err);
+        UI.errMsg.textContent = err.message || "Failed to load knowledge. Please retry.";
+        activateView('error');
+    }
+};
+
+const injectTriggers = () => {
+    UI.themeT.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+    });
+
+    UI.catSel.addEventListener('change', networkFetch);
+    UI.btnRetry.addEventListener('click', networkFetch);
+
+    [UI.searchInput, UI.diffSel, UI.sortSel].map(node => {
+        node.addEventListener('input', evaluatePipeline);
+        return node;
+    });
+
+    UI.btnNext.addEventListener('click', () => {
+        if (state.currentIndex < state.filteredQuestions.length - 1) {
+            state.currentIndex += 1;
+            renderPrompt();
+        } else {
+            networkFetch();
+        }
+    });
+};
+
+const AppStart = () => {
+    hydrateCategories();
+    injectTriggers();
+    networkFetch();
+};
+
+window.addEventListener('DOMContentLoaded', AppStart);

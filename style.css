@@ -1,34 +1,154 @@
-/* 
-   Main styles have been migrated to Tailwind CSS utility classes in index.html.
-   This file is retained to keep the repository history intact and provide a 
-   space for any future custom CSS overrides that Tailwind can't handle.
-*/
-
-:root {
-    /* Keeping optional custom color variables in case they are needed later */
-    --accent-color: #0071e3;
-    --bg-light: #f5f5f7;
-}
-
 body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* Custom scrollbar for an elegant Apple-like feel */
-::-webkit-scrollbar {
-    width: 8px;
+.title-gradient {
+    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #A855F7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-::-webkit-scrollbar-track {
-    background: transparent;
+.dark .title-gradient {
+    background: linear-gradient(135deg, #818CF8 0%, #A78BFA 50%, #C084FC 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
+.glass-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.dark .glass-card {
+    background: rgba(28, 28, 30, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.apple-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.07);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #1c1c1e;
+}
+
+.apple-input::placeholder {
+    color: #9ca3af;
+}
+
+.dark .apple-input {
+    background: rgba(44, 44, 46, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    color: #f5f5f7;
+}
+
+.dark .apple-input::placeholder {
+    color: #6b7280;
+}
+
+.dark .apple-input option {
+    background-color: #2c2c2e;
+    color: #f5f5f7;
+}
+
+.apple-input:focus {
+    outline: none;
+    border-color: #7C3AED;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+}
+
+.dark .apple-input:focus {
+    border-color: #A78BFA;
+    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+}
+
+.option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 1rem 1.25rem;
+    border-radius: 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.45;
+    border: 1.5px solid rgba(0, 0, 0, 0.07);
+    background: rgba(255, 255, 255, 0.6);
+    color: #1c1c1e;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.dark .option-btn {
+    background: rgba(44, 44, 46, 0.6);
+    border-color: rgba(255, 255, 255, 0.07);
+    color: #f5f5f7;
+}
+
+.option-btn:hover:not(:disabled) {
+    border-color: #7C3AED;
+    background: rgba(124, 58, 237, 0.06);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12);
+}
+
+.dark .option-btn:hover:not(:disabled) {
+    border-color: #A78BFA;
+    background: rgba(167, 139, 250, 0.1);
+    box-shadow: 0 4px 14px rgba(167, 139, 250, 0.15);
+}
+
+.option-btn:active:not(:disabled) {
+    transform: scale(0.985);
+}
+
+.option-btn.correct {
+    background: rgba(34, 197, 94, 0.12) !important;
+    border-color: #22c55e !important;
+    color: #15803d !important;
+}
+
+.dark .option-btn.correct {
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #86efac !important;
+}
+
+.option-btn.incorrect {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: #ef4444 !important;
+    color: #b91c1c !important;
+}
+
+.dark .option-btn.incorrect {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #fca5a5 !important;
+}
+
+.progress-bar {
+    height: 3px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #7C3AED, #A855F7);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-    background: #d1d1d6;
-    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
 }
-
 .dark ::-webkit-scrollbar-thumb {
-    background: #48484a;
+    background: rgba(255, 255, 255, 0.15);
 }

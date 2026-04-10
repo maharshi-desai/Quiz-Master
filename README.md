@@ -1,104 +1,44 @@
-#  Quiz Master – Trivia Challenge App
+# Quiz Master
 
+Quiz Master is a sleek, modern, and responsive trivia application built with Vanilla JavaScript, HTML, and Tailwind CSS. It draws inspiration from Apple's design aesthetics, featuring a clean "glassmorphism" UI, smooth transitions, and a robust filtering system.
 
-## Project Overview
-Quiz Master is a web-based trivia application that uses the Open Trivia DB API to provide interactive quiz questions. Users can select categories and difficulty levels, answer questions, and view their scores at the end.
+## Features
 
-This project demonstrates JavaScript concepts such as API integration, dynamic UI rendering, and the use of Array Higher-Order Functions (HOFs).
+-   **Dynamic API Integration**: Fetches real-time trivia questions from the Open Trivia Database (OpenTDB).
+-   **Comprehensive Filtering**:
+    -   **Category**: Choose from 20+ different trivia categories.
+    -   **Search**: Real-time keyword searching through questions and multiple-choice answers.
+    -   **Difficulty**: Filter by Easy, Medium, or Hard levels.
+-   **Smart Sorting**: Sort fetched questions alphabetically or by difficulty level.
+-   **Progressive UI**:
+    -   **Dark Mode**: Native dark/light mode toggle with persistent visibility fixes.
+    -   **Progress Bar**: Visual feedback on your progress through the quiz.
+    -   **Score Tracking**: Real-time score updates as you answer.
+-   **Premium Design**: Features custom gradients, Inter typography, and Apple-style interactive elements.
 
----
+## Use of Higher-Order Functions (HOFs)
 
-## Objective
-- Fetch real-time quiz data using a public API
-- Display questions dynamically on the webpage
-- Implement searching, filtering, and sorting using Array HOFs
-- Build an interactive and responsive UI
+The core logic of Quiz Master relies heavily on JavaScript's functional programming patterns, specifically Higher-Order Functions. This ensures the code is clean, declarative, and efficient.
 
----
+### 1. `Map()`
+Map is used throughout the application to transform data and generate UI elements dynamically:
+-   **Data Transformation**: Transforming raw API responses into a cleaner object structure.
+-   **Category Hydration**: Converting the static category list into HTML `<option>` elements.
+-   **UI Generation**: Iterating over answer arrays to create interactive choice buttons.
 
-## API Used
-- Open Trivia DB  
-- https://opentdb.com/
+### 2. `Filter()`
+The `evaluatePipeline` function uses `.filter()` to implement the real-time search and categorization engine. It creates a new subset of questions that simultaneously satisfy:
+-   The user's search keyword.
+-   The selected difficulty level.
 
----
+### 3. `Sort()`
+The application uses `.sort()` to organize questions based on user preference:
+-   **Alphabetical**: Sorting by the question text content.
+-   **Difficulty**: Using a mapping object `{easy: 1, medium: 2, hard: 3}` to sort questions logically.
 
-##  Features
+### 4. `Find()`
+Within the filter pipeline, `.find()` is used to check if a search term matches any of the possible answers for a question, allowing for deeper search capabilities beyond just the question title.
 
-###  Core Features
-- Fetch quiz questions from API
-- Display multiple-choice questions
-- Navigate between questions
-- Show final score
+## Getting Started
 
-###  Quiz Controls
-- Select category
-- Select difficulty (Easy / Medium / Hard)
-- Start quiz button
-
-###  Randomized Options
-- Shuffle answer choices for each question
-
-###  Score System
-- Calculate total correct answers
-- Display final score and accuracy
-
-###  Filtering
-- Filter questions by category and difficulty
-
-### Additional Features
-- Highlight correct and wrong answers
-- Review incorrect answers after quiz
-
-###  UI Enhancements
-- Dark Mode / Light Mode toggle
-- Responsive design for all devices
-- Loading indicator while fetching data
-
----
-
-##  Use of Array Higher-Order Functions
-
-- `map()` → Render questions and options dynamically  
-- `filter()` → Filter questions based on category/difficulty  
-- `sort()` → Shuffle answer options  
-- `reduce()` → Calculate total score  
-- `find()` → Identify selected answer  
-
----
-
-## Tech Stack
-- HTML5  
-- CSS3  
-- JavaScript (ES6+)  
-- Fetch API  
-
----
-
-## Responsiveness
-The application is fully responsive and works on:
-- Mobile devices  
-- Tablets  
-- Desktop screens  
-
----
-
-## Milestones
-- Milestone 1: Project Planning and Setup  
-- Milestone 2: API Integration  
-- Milestone 3: Core Features Implementation  
-- Milestone 4: Deployment and Final Submission  
-
----
-
-## Future Enhancements
-- Timer for each question  
-- Leaderboard system  
-- Save high scores using localStorage  
-- Multiplayer quiz mode  
-
----
-
-## Author
-Maharshi Desai
-
----
+Simply open `index.html` in your browser. No build steps or dependencies are required other than an active internet connection to fetch questions from the API.

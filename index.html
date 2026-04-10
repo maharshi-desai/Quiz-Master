@@ -1,111 +1,169 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master | Trivia Challenge</title>
+    <meta name="description" content="Quiz Master — test your knowledge with trivia questions across categories and difficulty levels.">
+    <title>Quiz Master</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
     <script>
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
-                    },
                     colors: {
                         apple: {
-                            light: '#f5f5f7',
-                            dark: '#000000',
-                            cardLight: '#ffffff',
-                            cardDark: '#1c1c1e',
-                            textLight: '#1d1d1f',
-                            textDark: '#f5f5f7',
-                            accent: '#0071e3'
+                            50: '#fbfbfd',
+                            100: '#f5f5f7',
+                            800: '#1c1c1e',
+                            900: '#000000',
+                            blue: '#007aff',
+                            blueDark: '#0A84FF',
                         }
                     }
                 }
             }
         }
     </script>
-    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-apple-light text-apple-textLight dark:bg-apple-dark dark:text-apple-textDark transition-colors duration-300 min-h-screen">
 
-    <nav class="sticky top-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-indigo-600">Quiz Master</h1>
-            <div class="flex items-center gap-4">
-                <span id="score-display" class="font-medium text-sm px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">Score: 0</span>
-                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
-                    <svg id="moon-icon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                    <svg id="sun-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                </button>
-            </div>
+<body
+    class="bg-apple-50 dark:bg-apple-900 text-apple-900 dark:text-apple-50 min-h-screen flex flex-col items-center py-10 px-4 md:px-8">
+
+    <header class="w-full max-w-3xl flex justify-between items-center mb-10 px-2">
+        <div>
+            <h1 class="title-gradient text-3xl font-bold tracking-tight mb-1">Quiz Master</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Test your knowledge</p>
         </div>
-    </nav>
+        <button id="theme-toggle"
+            class="p-3 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors duration-200"
+            aria-label="Toggle dark mode">
+            <svg id="moon-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z">
+                </path>
+            </svg>
+            <svg id="sun-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+        </button>
+    </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        
-        <!-- Controls Section -->
-        <div class="bg-apple-cardLight dark:bg-apple-cardDark rounded-2xl shadow-sm p-4 mb-8 flex flex-col md:flex-row gap-4 border border-gray-100 dark:border-gray-800">
-            <select id="category-select" class="flex-1 bg-gray-50 dark:bg-gray-800 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-apple-accent outline-none">
-                <option value="any">All Categories</option>
-            </select>
-            
-            <input type="text" id="search-input" placeholder="Search questions..." class="flex-1 bg-gray-50 dark:bg-gray-800 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-apple-accent outline-none">
-            
-            <select id="difficulty-filter" class="bg-gray-50 dark:bg-gray-800 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-apple-accent outline-none">
-                <option value="any">Any Difficulty</option>
+    <div class="w-full max-w-3xl flex flex-col md:flex-row gap-3 mb-8">
+        <select id="category-select" class="apple-input flex-1 p-3.5 rounded-xl text-sm font-medium cursor-pointer">
+            <option value="any">Start with any Category</option>
+        </select>
+
+        <input type="text" id="search-input" placeholder="Search keyword..."
+            class="apple-input flex-1 p-3.5 rounded-xl text-sm font-medium">
+
+        <div class="flex gap-3 flex-1">
+            <select id="difficulty-select"
+                class="apple-input w-1/2 p-3.5 rounded-xl text-sm font-medium cursor-pointer">
+                <option value="any">All Levels</option>
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
             </select>
-
-            <select id="sort-select" class="bg-gray-50 dark:bg-gray-800 border-none rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-apple-accent outline-none">
-                <option value="default">Default Sort</option>
-                <option value="alpha-asc">A-Z</option>
-                <option value="alpha-desc">Z-A</option>
-                <option value="diff-asc">Difficulty (Easy -> Hard)</option>
-                <option value="diff-desc">Difficulty (Hard -> Easy)</option>
+            <select id="sort-select" class="apple-input w-1/2 p-3.5 rounded-xl text-sm font-medium cursor-pointer">
+                <option value="none">Sort: Default</option>
+                <option value="alpha">Sort: A-Z</option>
+                <option value="difficulty">Sort: Difficulty</option>
             </select>
         </div>
+    </div>
 
-        <div id="loader" class="flex flex-col items-center justify-center py-20">
-            <div class="spinner border-4 border-gray-200 dark:border-gray-700 border-l-apple-accent dark:border-l-apple-accent rounded-full w-10 h-10 animate-spin mb-4"></div>
-            <p class="text-gray-500 dark:text-gray-400">Fetching Trivia...</p>
+    <main
+        class="w-full max-w-3xl glass-card rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] p-8 md:p-10 relative overflow-hidden flex flex-col">
+
+        <div id="loading-view" class="hidden flex-col justify-center items-center py-20">
+            <div
+                class="animate-spin rounded-full h-10 w-10 border-[3px] border-apple-900 border-t-transparent dark:border-white dark:border-t-transparent mb-6">
+            </div>
+            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Curating questions...</p>
         </div>
 
-        <div id="empty-state" class="hidden text-center py-20">
-            <p class="text-gray-500 dark:text-gray-400">No questions found matching your criteria.</p>
+        <div id="error-view" class="hidden flex-col items-center text-center py-16">
+            <div
+                class="h-16 w-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+            </div>
+            <p class="text-red-500 font-medium mb-6" id="error-message">Oops! Something went wrong.</p>
+            <button id="retry-btn"
+                class="px-8 py-3 bg-apple-900 dark:bg-white text-white dark:text-apple-900 rounded-full font-medium hover:opacity-85 transition-opacity active:scale-95 shadow-sm">
+                Try Again
+            </button>
         </div>
 
-        <div id="quiz-container" class="hidden">
-            <div id="question-card" class="bg-apple-cardLight dark:bg-apple-cardDark rounded-3xl shadow-lg p-6 md:p-10 border border-gray-100 dark:border-gray-800">
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span id="category-badge" class="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 px-3 py-1 rounded-full text-xs font-semibold">Category</span>
-                    <span id="difficulty-badge" class="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 px-3 py-1 rounded-full text-xs font-semibold">Easy</span>
-                    <span id="question-progress" class="ml-auto text-gray-400 dark:text-gray-500 text-xs font-medium self-center">1/10</span>
+        <div id="quiz-view" class="hidden flex-col flex-1 w-full justify-between items-center sm:items-stretch">
+
+            <div
+                class="w-full flex justify-between items-center mb-8 pb-4 border-b border-gray-100 dark:border-gray-800">
+                <div class="flex items-center gap-3">
+                    <span id="question-category"
+                        class="bg-gray-100 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide">Category</span>
+                    <span id="question-difficulty"
+                        class="capitalize text-xs font-semibold px-3.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">Easy</span>
                 </div>
-                
-                <h2 id="question-text" class="text-xl md:text-2xl font-medium mb-8 leading-relaxed">Loading question...</h2>
-                
-                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Options injected here -->
+                <div class="text-apple-blue dark:text-apple-blueDark font-bold tracking-tight">
+                    Score: <span id="score-display">0</span>
                 </div>
-                
-                <div class="mt-8 flex justify-end">
-                    <button id="next-btn" class="bg-apple-accent hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-semibold transition-all transform active:scale-95 shadow-md">Next Question</button>
+            </div>
+
+            <div class="w-full mb-5">
+                <div class="w-full text-xs font-bold text-gray-400 uppercase tracking-widest mb-2.5 text-center sm:text-left">
+                    Question <span id="current-question-num" class="text-gray-800 dark:text-gray-200">1</span> of <span id="total-questions-num">10</span>
                 </div>
+                <div class="w-full h-[3px] rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                    <div id="progress-bar" class="progress-bar h-full" style="width: 10%"></div>
+                </div>
+            </div>
+
+            <h2 id="question-text"
+                class="w-full text-2xl sm:text-3xl font-bold mb-10 leading-snug tracking-tight text-center sm:text-left">
+                Question goes here?
+            </h2>
+
+            <div id="options-container" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-10 flex-1">
+            </div>
+
+            <div class="w-full flex justify-end">
+                <button id="next-btn"
+                    class="hidden w-full sm:w-auto px-10 py-3.5 bg-apple-900 dark:bg-white text-white dark:text-apple-900 rounded-full font-semibold hover:opacity-85 transition-all duration-200 active:scale-95 shadow-md">
+                    Next Question
+                </button>
             </div>
         </div>
 
-        <div id="error-message" class="hidden text-center py-20 bg-red-50 dark:bg-red-900/20 rounded-2xl">
-            <p class="text-red-600 dark:text-red-400 mb-4">Oops! Something went wrong while fetching the quiz.</p>
-            <button onclick="location.reload()" class="bg-red-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-red-600 transition-colors">Try Again</button>
+        <div id="empty-view" class="hidden flex-col items-center text-center py-20">
+            <div
+                class="h-16 w-16 bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full flex items-center justify-center mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">No Match Found</h3>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Try adjusting your category, filters or search keyword.
+            </p>
         </div>
+
     </main>
 
     <script src="script.js"></script>
 </body>
+
 </html>
